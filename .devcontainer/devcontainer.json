@@ -18,7 +18,9 @@
       ],
       "settings": {
         "files.autoSave": "afterDelay",
-        "workbench.startupEditor": "none"
+        "workbench.startupEditor": "none",
+        "livePreview.serverRoot": "practice",
+        "livePreview.openPreviewTarget": "External Browser"
       }
     }
   }
