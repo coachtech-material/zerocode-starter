@@ -2,7 +2,8 @@
   "name": "zerocode",
   "image": "mcr.microsoft.com/devcontainers/php:8.4",
   "containerEnv": {
-    "XDEBUG_MODE": "off"
+    "XDEBUG_MODE": "off",
+    "LANG": "C.UTF-8"
   },
   "forwardPorts": [8000],
   "portsAttributes": {
@@ -20,7 +21,8 @@
         "files.autoSave": "afterDelay",
         "workbench.startupEditor": "none",
         "livePreview.serverRoot": "practice",
-        "livePreview.openPreviewTarget": "External Browser"
+        "livePreview.openPreviewTarget": "External Browser",
+        "git.showPushSuccessNotification": true
       }
     }
   }
