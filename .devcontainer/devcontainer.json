@@ -22,7 +22,8 @@
         "workbench.startupEditor": "none",
         "livePreview.serverRoot": "practice",
         "livePreview.openPreviewTarget": "External Browser",
-        "git.showPushSuccessNotification": true
+        "git.showPushSuccessNotification": true,
+        "chat.disableAIFeatures": true
       }
     }
   }
