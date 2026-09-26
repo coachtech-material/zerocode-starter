@@ -135,6 +135,7 @@ EOF
 # このファイルはインストーラが作り、ログインの情報も持つので、中身は残して印だけを足す
 [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
 if jq --arg ws "$workspace" '.hasCompletedOnboarding = true
+    | .fullscreenUpsellSeenCount = 3
     | .projects[$ws].hasTrustDialogAccepted = true
     | .projects[$ws + "/chat-app"].hasTrustDialogAccepted = true' \
     "$HOME/.claude.json" > "$TMP_DIR/claude.json" 2>>"$LOG"; then
