@@ -92,6 +92,7 @@ cat > "$HOME/.claude/settings.json" <<'EOF'
   "theme": "light",
   "autoUpdatesChannel": "stable",
   "autoMemoryEnabled": false,
+  "disableClaudeAiConnectors": true,
   "permissions": {
     "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
