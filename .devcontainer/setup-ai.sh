@@ -47,21 +47,16 @@ if ! command -v codex >/dev/null 2>&1; then
   fi
 fi
 
-# 3. Codex のサンドボックスが使う bubblewrap（イメージに入っていないときだけ入れる）
-if ! command -v bwrap >/dev/null 2>&1; then
-  if ! { sudo -n apt-get update && sudo -n apt-get install -y --no-install-recommends bubblewrap; } >>"$LOG" 2>&1; then
-    fail "bubblewrap を入れられませんでした"
-  fi
-fi
-
-# 4. 新しく開くターミナルでも使えるようにする（前からある作業部屋にも効かせる）
+# 3. 新しく開くターミナルでも使えるようにする（前からある作業部屋にも効かせる）
+#    BROWSER を空にするのは、Claude Code のログインで VS Code の「開く」の窓を出さないため
+#    （開いた先は localhost に戻れず失敗する。空なら、押せるアドレスだけがターミナルに出る）
 for rc in "$HOME/.bashrc" "$HOME/.profile"; do
-  for line in 'export PATH="$HOME/.local/bin:$PATH"' 'export CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL=1'; do
+  for line in 'export PATH="$HOME/.local/bin:$PATH"' 'export CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL=1' 'export BROWSER='; do
     grep -qxF "$line" "$rc" 2>/dev/null || printf '%s\n' "$line" >> "$rc"
   done
 done
 
-# 5. ホームの決まり（Claude Code と Codex で同じもの）
+# 4. ホームの決まり（Claude Code と Codex で同じもの）
 mkdir -p "$HOME/.claude" "$HOME/.codex/rules"
 cat > "$HOME/.claude/CLAUDE.md" <<'EOF'
 # この作業部屋での決まり（zerocode）
@@ -90,7 +85,7 @@ cat > "$HOME/.claude/CLAUDE.md" <<'EOF'
 EOF
 cp "$HOME/.claude/CLAUDE.md" "$HOME/.codex/AGENTS.md"
 
-# 6. Claude Code の設定
+# 5. Claude Code の設定
 cat > "$HOME/.claude/settings.json" <<'EOF'
 {
   "language": "japanese",
@@ -135,11 +130,29 @@ cat > "$HOME/.claude/settings.json" <<'EOF'
 }
 EOF
 
-# 7. Codex の設定（作業フォルダと、その下の chat-app を信頼する）
+# Claude Code の初回の案内（色・ログイン方法）とフォルダの信頼の問いを済ませておく。
+# ログインは claude auth login で行う（起動画面からのログインは、ブラウザ版の作業部屋では終わらない）。
+# このファイルはインストーラが作り、ログインの情報も持つので、中身は残して印だけを足す
+[ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
+if jq --arg ws "$workspace" '.hasCompletedOnboarding = true
+    | .projects[$ws].hasTrustDialogAccepted = true
+    | .projects[$ws + "/chat-app"].hasTrustDialogAccepted = true' \
+    "$HOME/.claude.json" > "$TMP_DIR/claude.json" 2>>"$LOG"; then
+  cat "$TMP_DIR/claude.json" > "$HOME/.claude.json"
+else
+  fail "Claude Code の初回の設定を書けませんでした"
+fi
+
+# 6. Codex の設定（作業フォルダと、その下の chat-app を信頼する）
+#    Codespaces のコンテナではサンドボックスが使えない（ユーザー名前空間を作れない）ので、
+#    作業部屋そのものを囲いにする。確認は approval_policy と rules で出す
 cat > "$HOME/.codex/config.toml" <<EOF
-sandbox_mode = "workspace-write"
+sandbox_mode = "danger-full-access"
 approval_policy = "on-request"
 check_for_update_on_startup = false
+
+[notice]
+hide_full_access_warning = true
 
 [projects."$workspace"]
 trust_level = "trusted"
@@ -175,7 +188,7 @@ prefix_rule(pattern = ["rm"], decision = "prompt", justification = "消す前に
 prefix_rule(pattern = ["git"], decision = "prompt", justification = "git は学習者が扱う")
 EOF
 
-# 8. Codex がルールを読めるか
+# 7. Codex がルールを読めるか
 if command -v codex >/dev/null 2>&1; then
   if ! codex execpolicy check --rules "$HOME/.codex/rules/zerocode.rules" php artisan migrate:fresh >>"$LOG" 2>&1; then
     fail "Codex のルールを読めませんでした"
