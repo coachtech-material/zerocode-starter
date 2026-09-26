@@ -28,8 +28,7 @@
         "livePreview.serverRoot": "practice",
         "livePreview.openPreviewTarget": "External Browser",
         "git.showPushSuccessNotification": true,
-        "chat.disableAIFeatures": true,
-        "security.workspace.trust.enabled": false
+        "chat.disableAIFeatures": true
       }
     }
   }
